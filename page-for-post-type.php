@@ -377,6 +377,10 @@ class Page_For_Post_Type {
 		// get page ID array
 		$page_ids = $this->get_page_ids();
 
+		if ( ! isset( $page_ids[ $object_post_type ] ) ) {
+			return $classes;
+		}
+
 		if ( $item->type === 'post_type' && $item->object === 'page' && intval( $item->object_id ) === intval( $page_ids[ $object_post_type ] ) ) {
 			if ( is_singular( $object_post_type ) ) {
 				$classes[] = 'current-menu-item-ancestor';
