@@ -34,7 +34,8 @@ class Page_For_Post_Type {
 		add_action( 'registered_post_type', array( $this, 'update_post_type' ), 11, 2 );
 
 		// menu classes
-		add_filter( 'wp_nav_menu_objects', array( $this, 'filter_wp_nav_menu_objects' ), 1, 2 );
+//		add_filter( 'wp_nav_menu_objects', array( $this, 'filter_wp_nav_menu_objects' ), 1, 2 );
+		add_filter( 'nav_menu_css_class', array( $this, 'filter_wp_nav_menu_css_class' ), 1, 4 );
 
 		// customiser
 		add_action( 'customize_register', array( $this, 'action_customize_register' ) );
@@ -284,7 +285,7 @@ class Page_For_Post_Type {
 	 * @param $args
 	 * @return array
 	 */
-	public function filter_wp_nav_menu_objects( $sorted_items, $args ) {
+	/*public function filter_wp_nav_menu_objects( $sorted_items, $args ) {
 		global $wp_query;
 
 		$queried_object = get_queried_object();
@@ -338,6 +339,54 @@ class Page_For_Post_Type {
 		}
 
 		return $sorted_items;
+	}*/
+
+	/**
+	 * Make sure menu items for our pages get the correct classes assigned
+	 *
+	 * @param $classes
+	 * @param $item
+	 *
+	 * @return array
+	 */
+	public function filter_wp_nav_menu_css_class( $classes, $item ) {
+
+		global $wp_query;
+
+		$queried_object = get_queried_object();
+
+		$object_post_type = false;
+
+		if ( is_singular() ) {
+			$object_post_type = $queried_object->post_type;
+		}
+
+		if ( is_post_type_archive() ) {
+			$object_post_type = $queried_object->name;
+		}
+
+		if ( is_archive() && is_string( $wp_query->get( 'post_type' ) ) ) {
+			$query_post_type  = $wp_query->get( 'post_type' );
+			$object_post_type = $query_post_type ?: 'post';
+		}
+
+		if ( ! $object_post_type ) {
+			return $classes;
+		}
+
+		// get page ID array
+		$page_ids = $this->get_page_ids();
+
+		if ( $item->type === 'post_type' && $item->object === 'page' && intval( $item->object_id ) === intval( $page_ids[ $object_post_type ] ) ) {
+			if ( is_singular( $object_post_type ) ) {
+				$classes[] = 'current-menu-item-ancestor';
+			}
+			if ( is_post_type_archive( $object_post_type ) ) {
+				$classes[] = 'current-menu-item';
+			}
+		}
+
+		return $classes;
 	}
 
 	/**
